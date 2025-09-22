@@ -1,5 +1,4 @@
-package com.xulihang;
-
+import com.xulihang.OCRCTC;
 import ai.onnxruntime.OrtException;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -8,7 +7,7 @@ import org.opencv.imgcodecs.Imgcodecs;
 import java.io.IOException;
 import java.util.List;
 
-public class Main {
+public class Test {
     public static void main(String[] args) throws OrtException, IOException {
         // 加载OpenCV本地库
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);

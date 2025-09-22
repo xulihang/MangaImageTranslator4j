@@ -269,10 +269,10 @@ public class OCRCTC {
 
     // 字符信息类
     public static class CharResult {
-        String character;
-        float logProb;
-        float fr, fg, fb; // 前景色RGB (0-1范围)
-        float br, bg, bb; // 背景色RGB (0-1范围)
+        public String character;
+        public float logProb;
+        public float fr, fg, fb; // 前景色RGB (0-1范围)
+        public float br, bg, bb; // 背景色RGB (0-1范围)
 
         CharResult(String character, float logProb, float fr, float fg, float fb, float br, float bg, float bb) {
             this.character = character;
