@@ -100,7 +100,7 @@ public class OCRCTC {
             }
         }
         buffer.rewind();
-
+        floatImage.release();
         return buffer;
     }
 
@@ -119,7 +119,7 @@ public class OCRCTC {
 
         // 创建ONNX输入张量
         try (OnnxTensor inputTensor = OnnxTensor.createTensor(
-                OrtEnvironment.getEnvironment(),
+                env,
                 preprocessedBuffer,
                 shape
         )) {
