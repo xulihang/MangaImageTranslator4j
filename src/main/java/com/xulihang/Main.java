@@ -23,11 +23,13 @@ public class Main {
         Mat img = Imgcodecs.imread("test.jpg");
 
         // 进行OCR推理
-        List<OCRCTC.Result> results = onnxOcr.infer(img, true);
-        System.out.println(results);
-
-
-
-
+        OCRCTC.OCRResult result = onnxOcr.infer(img);
+        for (var charResult:result.chars) {
+            System.out.println(charResult.character);
+            System.out.println(charResult.fr);
+            System.out.println(charResult.fg);
+            System.out.println(charResult.fb);
+        }
+        System.out.println(result.text);
     }
 }
