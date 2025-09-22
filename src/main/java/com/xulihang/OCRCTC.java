@@ -225,13 +225,21 @@ public class OCRCTC {
                         if (colorArray.length >= 6) {
                             fr = colorArray[0]; fg = colorArray[1]; fb = colorArray[2];
                             br = colorArray[3]; bg = colorArray[4]; bb = colorArray[5];
+
+                            // 确保颜色值在0-1范围内（如果是sigmoid输出）
+                            fr = Math.max(0, Math.min(1, fr));
+                            fg = Math.max(0, Math.min(1, fg));
+                            fb = Math.max(0, Math.min(1, fb));
+                            br = Math.max(0, Math.min(1, br));
+                            bg = Math.max(0, Math.min(1, bg));
+                            bb = Math.max(0, Math.min(1, bb));
                         }
                     }
 
                     currentChars.add(new CharResult(
                             predCh, logProb,
-                            fr, fg, fb,
-                            br, bg, bb
+                            fb, fg, fr,
+                            bb, bg, br
                     ));
                 }
 
@@ -241,11 +249,16 @@ public class OCRCTC {
             predChars.add(currentChars);
         }
 
-        // 将预测结果转换为文本
+        // 将预测结果转换为文本和颜色信息
         List<Result> resultText = new ArrayList<>();
         for (List<CharResult> chars : predChars) {
             StringBuilder text = new StringBuilder();
             float totalLogprob = 0;
+
+            List<int[]> foregroundColors = new ArrayList<>();
+            List<int[]> backgroundColors = new ArrayList<>();
+            List<String> foregroundHexColors = new ArrayList<>();
+            List<String> backgroundHexColors = new ArrayList<>();
 
             for (CharResult charResult : chars) {
                 String ch = dictionary.get(charResult.chIndex);
@@ -254,6 +267,12 @@ public class OCRCTC {
                 }
                 text.append(ch);
                 totalLogprob += charResult.logProb;
+
+                // 收集颜色信息
+                foregroundColors.add(charResult.getForegroundRGB());
+                backgroundColors.add(charResult.getBackgroundRGB());
+                foregroundHexColors.add(charResult.getForegroundHex());
+                backgroundHexColors.add(charResult.getBackgroundHex());
             }
 
             // 计算概率
@@ -261,13 +280,33 @@ public class OCRCTC {
             if (!chars.isEmpty()) {
                 prob = (float) Math.exp(totalLogprob / chars.size());
             }
-            resultText.add(new Result(text.toString(), prob));
+
+            resultText.add(new Result(
+                    text.toString(), prob,
+                    foregroundColors, backgroundColors,
+                    foregroundHexColors, backgroundHexColors
+            ));
         }
 
         if (verbose) {
             for (int i = 0; i < resultText.size(); i++) {
                 Result result = resultText.get(i);
                 System.out.printf("样本 %d: 文本='%s', 概率=%.4f%n", i + 1, result.text, result.probability);
+
+                // 输出每个字符的颜色信息
+                System.out.println("字符颜色信息:");
+                for (int j = 0; j < result.text.length(); j++) {
+                    char ch = result.text.charAt(j);
+                    int[] fgRGB = result.foregroundColors.get(j);
+                    int[] bgRGB = result.backgroundColors.get(j);
+                    String fgHex = result.foregroundHexColors.get(j);
+                    String bgHex = result.backgroundHexColors.get(j);
+
+                    System.out.printf("  字符 '%c': 前景色 RGB(%d,%d,%d) %s, 背景色 RGB(%d,%d,%d) %s%n",
+                            ch, fgRGB[0], fgRGB[1], fgRGB[2], fgHex,
+                            bgRGB[0], bgRGB[1], bgRGB[2], bgHex);
+                }
+                System.out.println();
             }
         }
 
@@ -278,8 +317,8 @@ public class OCRCTC {
     private static class CharResult {
         int chIndex;
         float logProb;
-        float fr, fg, fb;
-        float br, bg, bb;
+        float fr, fg, fb; // 前景色RGB (0-1范围)
+        float br, bg, bb; // 背景色RGB (0-1范围)
 
         CharResult(int chIndex, float logProb, float fr, float fg, float fb, float br, float bg, float bb) {
             this.chIndex = chIndex;
@@ -291,16 +330,54 @@ public class OCRCTC {
             this.bg = bg;
             this.bb = bb;
         }
+
+        // 将0-1范围的浮点数转换为0-255的整数RGB值
+        public int[] getForegroundRGB() {
+            return new int[]{
+                    (int) (fr * 255),
+                    (int) (fg * 255),
+                    (int) (fb * 255)
+            };
+        }
+
+        public int[] getBackgroundRGB() {
+            return new int[]{
+                    (int) (br * 255),
+                    (int) (bg * 255),
+                    (int) (bb * 255)
+            };
+        }
+
+        // 获取十六进制颜色代码
+        public String getForegroundHex() {
+            int[] rgb = getForegroundRGB();
+            return String.format("#%02X%02X%02X", rgb[0], rgb[1], rgb[2]);
+        }
+
+        public String getBackgroundHex() {
+            int[] rgb = getBackgroundRGB();
+            return String.format("#%02X%02X%02X", rgb[0], rgb[1], rgb[2]);
+        }
     }
 
-    // 内部类用于存储最终结果
+    // 修改Result类，包含颜色信息
     public static class Result {
         public String text;
         public float probability;
+        public List<int[]> foregroundColors; // 每个字符的前景色RGB
+        public List<int[]> backgroundColors; // 每个字符的背景色RGB
+        public List<String> foregroundHexColors; // 每个字符的前景色十六进制
+        public List<String> backgroundHexColors; // 每个字符的背景色十六进制
 
-        Result(String text, float probability) {
+        Result(String text, float probability, List<int[]> foregroundColors, List<int[]> backgroundColors,
+               List<String> foregroundHexColors, List<String> backgroundHexColors) {
             this.text = text;
             this.probability = probability;
+            this.foregroundColors = foregroundColors;
+            this.backgroundColors = backgroundColors;
+            this.foregroundHexColors = foregroundHexColors;
+            this.backgroundHexColors = backgroundHexColors;
         }
     }
+
 }
