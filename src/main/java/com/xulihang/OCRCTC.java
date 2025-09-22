@@ -46,11 +46,6 @@ public class OCRCTC {
         for (String name : session.getOutputNames()) {
             outputNames.add(name);
         }
-
-        System.out.println("成功加载ONNX模型: " + onnxModelPath);
-        System.out.println("字典大小: " + dictSize);
-        System.out.println("ONNX输入名称: " + inputName);
-        System.out.println("ONNX输出名称: " + outputNames);
     }
 
     public OCRCTC(String onnxModelPath, String dictionaryPath) throws OrtException, IOException {
@@ -138,8 +133,6 @@ public class OCRCTC {
                         OnnxTensor tensor = (OnnxTensor) value;
                         long[] tensorShape = tensor.getInfo().getShape();
 
-                        System.out.println("Output " + outputName + " shape: " + java.util.Arrays.toString(tensorShape));
-
                         // 根据形状确定是3维还是4维
                         if (tensorShape.length == 3) {
                             if (charLogits == null) {
@@ -180,14 +173,6 @@ public class OCRCTC {
         int batchSize = predCharLogits.length;
         int timeSteps = predCharLogits[0].length;
         int numClasses = predCharLogits[0][0].length;
-
-        System.out.println("Char logits shape: [" + batchSize + ", " + timeSteps + ", " + numClasses + "]");
-
-        if (predColorValues != null) {
-            System.out.println("Color values shape: [" + predColorValues.length + ", " +
-                    (predColorValues.length > 0 ? predColorValues[0].length : 0) + ", " +
-                    (predColorValues.length > 0 && predColorValues[0].length > 0 ? predColorValues[0][0].length : 0) + "]");
-        }
 
         // 处理批次中的每个样本
         for (int b = 0; b < batchSize; b++) {
