@@ -35,8 +35,10 @@ public class OCRCTC {
 
         // 创建ONNX Runtime环境
         env = OrtEnvironment.getEnvironment();
-        OrtSession.SessionOptions sessionOptions = new OrtSession.SessionOptions();
 
+        OrtSession.SessionOptions sessionOptions = new OrtSession.SessionOptions();
+        sessionOptions.setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT);
+        sessionOptions.setExecutionMode(OrtSession.SessionOptions.ExecutionMode.SEQUENTIAL);
         // 加载ONNX模型
         session = env.createSession(onnxModelPath, sessionOptions);
 
@@ -121,7 +123,6 @@ public class OCRCTC {
 
             // 执行ONNX推理
             try (OrtSession.Result outputs = session.run(Collections.singletonMap(inputName, inputTensor))) {
-
                 // 安全地处理输出 - 根据实际维度进行处理
                 float[][][] charLogits = null;
                 float[][][] colorValues = null;
