@@ -19,8 +19,8 @@ public class Test {
                 "alphabet-all-v5.txt"
         );
 
-        Mat img = Imgcodecs.imread("clipped.jpg");
-        for (int i = 0; i < 100; i++) {
+        Mat img = Imgcodecs.imread("image.jpg");
+        //for (int i = 0; i < 100; i++) {
             long startTime = System.currentTimeMillis();
             OCRCTC.OCRResult result = onnxOcr.infer(img);
             for (var charResult:result.chars) {
@@ -32,7 +32,7 @@ public class Test {
             System.out.println(result.text);
             long endTime = System.currentTimeMillis();
             System.out.println((endTime - startTime) + "ms");
-        }
+       // }
         // 进行OCR推理
 
     }

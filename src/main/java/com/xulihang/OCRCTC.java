@@ -65,6 +65,22 @@ public class OCRCTC {
             Imgproc.resize(image, image, new Size(newW, 48), 0, 0, Imgproc.INTER_LINEAR);
         }
 
+        // 检查宽度是否为48的倍数，如果不是则补充padding
+        int currentWidth = image.cols();
+        if (currentWidth % 48 != 0) {
+            int targetWidth = ((currentWidth / 48) + 1) * 48; // 向上取整到最近的48的倍数
+            targetWidth = targetWidth + 20; // 添加padding
+            // 创建新的Mat并填充边框
+            Mat paddedImage = new Mat(48, targetWidth, image.type());
+            paddedImage.setTo(new Scalar(255, 255, 255)); // 设置为白色背景，可以根据需要调整颜色
+
+            // 将原图像复制到填充图像的左侧
+            Mat roi = paddedImage.colRange(0, currentWidth);
+            image.copyTo(roi);
+
+            paddedImage.copyTo(image);
+        }
+
         // 转换为RGB格式
         if (image.channels() == 1) {
             Imgproc.cvtColor(image, image, Imgproc.COLOR_GRAY2RGB);
