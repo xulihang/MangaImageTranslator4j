@@ -20,9 +20,6 @@ public class AOTInpainter {
 
         if (useCUDA) {
             options.addCUDA(0);
-            System.out.println("✅ 使用 GPU 推理");
-        } else {
-            System.out.println("✅ 使用 CPU 推理");
         }
 
         session = env.createSession(modelPath, options);
@@ -77,10 +74,8 @@ public class AOTInpainter {
         return data;
     }
 
-    public Mat inpaint(String imagePath, String maskPath, String outputPath) throws Exception {
+    public Mat inpaint(Mat image, Mat mask) throws Exception {
         // 1️⃣ 读取图像和mask
-        Mat image = Imgcodecs.imread(imagePath, Imgcodecs.IMREAD_COLOR);
-        Mat mask = Imgcodecs.imread(maskPath, Imgcodecs.IMREAD_GRAYSCALE);
         if (image.empty() || mask.empty()) {
             throw new RuntimeException("无法读取图像或掩码。");
         }
@@ -136,8 +131,6 @@ public class AOTInpainter {
 
         // 6️⃣ 裁剪回原始大小
         Mat cropped = new Mat(outputImg, new Rect(0, 0, origW, origH));
-        Imgcodecs.imwrite(outputPath, cropped);
-        System.out.println("✅ 修复完成，已保存到：" + outputPath);
 
         return cropped;
     }
