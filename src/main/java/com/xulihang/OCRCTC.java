@@ -20,6 +20,30 @@ public class OCRCTC {
     private List<String> outputNames;
     private OrtEnvironment env;
 
+    public OCRCTC(String onnxModelPath, List<String> vocabs, int blank) throws OrtException, IOException {
+        // 加载字典
+        dictionary = vocabs;
+
+        this.blank = blank;
+        this.dictSize = dictionary.size();
+
+        // 创建ONNX Runtime环境
+        env = OrtEnvironment.getEnvironment();
+
+        OrtSession.SessionOptions sessionOptions = new OrtSession.SessionOptions();
+        sessionOptions.setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT);
+        sessionOptions.setExecutionMode(OrtSession.SessionOptions.ExecutionMode.SEQUENTIAL);
+        // 加载ONNX模型
+        session = env.createSession(onnxModelPath, sessionOptions);
+
+        // 获取输入和输出名称
+        inputName = session.getInputNames().iterator().next();
+        outputNames = new ArrayList<>();
+        for (String name : session.getOutputNames()) {
+            outputNames.add(name);
+        }
+    }
+
     public OCRCTC(String onnxModelPath, String dictionaryPath, int blank) throws OrtException, IOException {
         // 加载字典
         dictionary = new ArrayList<>();
@@ -48,6 +72,10 @@ public class OCRCTC {
         for (String name : session.getOutputNames()) {
             outputNames.add(name);
         }
+    }
+
+    public OCRCTC(String onnxModelPath, List<String> vocabs) throws OrtException, IOException {
+        this(onnxModelPath, vocabs, 0);
     }
 
     public OCRCTC(String onnxModelPath, String dictionaryPath) throws OrtException, IOException {
